@@ -1,5 +1,5 @@
 const validation = (req, res, next) => {
-    const { titulo, conteudo, autor, imagem } = req.body
+    const { titulo, conteudo, autor } = req.body
   
     if (!titulo) {
       return res.status(400).json({

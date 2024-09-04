@@ -73,4 +73,27 @@ export const getTasksByID = async (req, res) => { //3
     }
   }
 
-  
+export const updatePost = async (req,res) =>{
+
+
+    const {id} = req.params
+    const {titulo, conteudo, autor} = req.body
+
+    const postagemAtualizada = {
+        titulo, conteudo
+    }
+
+    try{
+        const [linhasAfetadas] = await Postagem.update(postagemAtualizada, {
+            where: {postagem_id: id } })
+
+        if(linhasAfetadas < 1){
+            return res.status(404).json({message: "Postagem não encontrada."})
+        }
+           
+        res.status(200).json({message: "Postagem atualizada com sucesso."})
+       
+        }catch(error){
+        res.status(500).json({err: "Erro interno no servidor."})
+    }
+}
