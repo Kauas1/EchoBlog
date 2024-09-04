@@ -5,7 +5,7 @@ import { Router } from "express"
 import checkNewPost from "../middleware/checkNewPost.js"
 
 //Métodos dos controllers:
-import { CreateNewPost, GetPostByPage } from "../Controllers/BlogController.js";
+import { CreateNewPost, GetPostByPage, getTasksByID } from "../Controllers/BlogController.js";
 
 // Declarand o Router:
 const router = Router()
@@ -13,5 +13,5 @@ const router = Router()
 //Endpoints:
 router.post("/", CreateNewPost, checkNewPost)
 router.get("/", GetPostByPage)
-
+router.get("/:id", getTasksByID)
 export default router;

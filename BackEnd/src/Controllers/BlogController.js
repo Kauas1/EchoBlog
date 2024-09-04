@@ -53,21 +53,13 @@ export const GetPostByPage = async (req, res) =>{
 // Buscar Postagem por ID
 export const getTasksByID = async (req, res) => { //3
 
-    const paramValidator = getSchema.safeParse(req.params)
-    if(!paramValidator.success){
-      res.status(400).json({ message: "Número de identificação está inválida.",
-      detalhes: formatZodError(paramValidator.error)
-      })
-      return
-    }
-  
-    const tarefaId = req.params.id
+
+    const PostagemId = req.params.id
     
     try {
-      const tarefa = await Tarefa.findByPk(tarefaId)
-  
-      if (tarefa) {
-        res.status(200).json(tarefa)
+      const postagem = await Postagem.findByPk(PostagemId)
+      if(postagem) {
+        res.status(200).json(PostagemId)
       } else {
         res.status(404).json({
           message: "Tarefa não encontrada."
@@ -80,3 +72,5 @@ export const getTasksByID = async (req, res) => { //3
       })
     }
   }
+
+  
