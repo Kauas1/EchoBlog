@@ -49,3 +49,34 @@ export const GetPostByPage = async (req, res) =>{
         res.status(500).json({err: "Erro interno no servidor."})
     }
 }
+
+// Buscar Postagem por ID
+export const getTasksByID = async (req, res) => { //3
+
+    const paramValidator = getSchema.safeParse(req.params)
+    if(!paramValidator.success){
+      res.status(400).json({ message: "Número de identificação está inválida.",
+      detalhes: formatZodError(paramValidator.error)
+      })
+      return
+    }
+  
+    const tarefaId = req.params.id
+    
+    try {
+      const tarefa = await Tarefa.findByPk(tarefaId)
+  
+      if (tarefa) {
+        res.status(200).json(tarefa)
+      } else {
+        res.status(404).json({
+          message: "Tarefa não encontrada."
+        })
+      }
+    } catch (error) {
+      console.error(error)
+      res.status(500).json({
+        err: "Erro interno ao buscar a tarefa."
+      })
+    }
+  }
