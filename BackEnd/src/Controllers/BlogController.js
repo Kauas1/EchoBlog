@@ -23,3 +23,29 @@ export const CreateNewPost = async (req, res) =>{
 
     }
 } 
+
+// Lista de Postagem por página.
+export const GetPostByPage = async (req, res) =>{
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 10
+    const offset = (page -1 ) * limit
+
+    try {
+        const postagem = await Postagem.findAndCountAll({
+            limit, offset
+        })
+
+        const totalPaginas = Math.ceil(postagem.count / limit)
+
+        res.status(200).json({
+            totalPostagem: postagem.count,
+            totalPaginas,
+            paginaAtual: page,
+            itemsPorPagina: limit,
+            proximaPagina: totalPaginas === 0 ? null : `${process.env.BASE_URL}/postagens?page=${page + 1}&limit=${limit}`,
+            postagens: postagem.rows
+        })
+    } catch (error) {
+        res.status(500).json({err: "Erro interno no servidor."})
+    }
+}
