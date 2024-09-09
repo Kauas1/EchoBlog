@@ -3,7 +3,7 @@ import { z } from "zod"
 import fs from "fs";
 
 // Validações com ZOD
-const createSchema = z.object({titulo: z.string().min(3, { msg: "O titulo deve ter pelo menos 3 caracteres" }).transform((txt) => txt.toLowerCase()),conteudo: z.string().min(5, { msg: "O conteudo deve ter pelo menos 5 caracteres" }),autor: z.string().min(3, { msg: "O autor deve ter pelo menos 3 caracteres" }),imagem: z.string().optional(),
+const createSchema = z.object({titulo: z.string().min(3, { msg: "O titulo deve ter pelo menos 3 caracteres" }).transform((txt) => txt.toLowerCase()), conteudo: z.string().min(5, { msg: "O conteudo deve ter pelo menos 5 caracteres" }), autor: z.string().min(3, { msg: "O autor deve ter pelo menos 3 caracteres" }), imagem: z.string().optional(),
 });
 
 const updatePostagemSchema = z.object({
@@ -148,10 +148,12 @@ export const deletePostagem = async (req, res) => {
     const [linhasAfetadas] = await Postagem.destroy({
       where: { id },
     });
+
     if (linhasAfetadas === 0) {
       res.status(404).json({ msg: "Postagem não encontrada" });
       return;
     }
+
     res.status(200).json({ msg: "Postagem deletada" });
   } catch (error) {
     console.error(error);

@@ -1,7 +1,7 @@
 import Usuarios from "../Models/UsuariosModel.js"
 import { z } from "zod"
 import bcrypt from "bcrypt"
-import createUserToken from "../helpers/create-user-token.js";
+
 
 
 // Validações com ZOD
@@ -10,17 +10,24 @@ const createSchema = z.object({nome: z.string().min(3, { msg: "O Nome deve ter p
 
 const loginSchema = z.object({email: z.string().email(), senha: z.string().min(8, {msg: "A senha deve ter pelo menos 8 caracteres"}) })
 
-//Importando o Erro do ZOD:
+const updateUserSchema = z.object({
+    nome: z.string().min(3, { msg: "O nome do usuário deve ter pelo menos 3 caracteres" }).transform((txt) => txt.toLowerCase()), email: z.string().email(), senha: z.string().min(8, { msg: "A senha deve ter pelo menos 8 caracteres" }), 
+  });
+
+
+
+//Importando os Helpers:
 import formatZodError from "../helpers/zodError.js";
+import createUserToken from "../helpers/create-user-token.js";
 
 // Adicionando os Usuarios:
 export const createUser = async (req, res) => {
-    const bodyValidation = createSchema.safeParse(req.body);
+    const updateValidation = createSchema.safeParse(req.body);
   
-    if (!bodyValidation.success) {
+    if (!updateValidation.success) {
       res.status(400).json({
         msg: "Os dados recebidos do corpo são inválidos",
-        detalhes: formatZodError(bodyValidation.error),
+        detalhes: formatZodError(updateValidation.error),
       });
       return;
     }
@@ -30,7 +37,6 @@ export const createUser = async (req, res) => {
     try {
       const salt = await bcrypt.genSalt(12);  
       const senhaHash = await bcrypt.hash(senha, salt);
-  
 
       const novoUsuario = {
         nome,
@@ -85,6 +91,59 @@ export const loginUser = async (req, res) => {
       console.error(error);
       res.status(500).json({ err: "Erro ao fazer Login." });
     }
-
   };
+
+// Função para Atualizar Usuário.
+  export const updateUser = async (req, res) => {
+
+    const paramValidation = z.object({ usuario_id: z.string() }).safeParse(req.params);
+    if (!paramValidation.success) {
+      return res.status(400).json({
+        msg: "O número de identificação está inválido",
+        detalhes: formatZodError(paramValidation.error)
+      });
+    }
   
+    const { usuario_id } = req.params;
+    const updateValidation = updateUserSchema.safeParse(req.body);
+    if (!updateValidation.success) {
+      return res.status(400).json({
+        msg: "Os dados do corpo são inválidos",
+        detalhes: updateValidation.error,
+      });
+    }
+  
+    const { nome, email, senha } = req.body;
+  
+    try {
+      const usuarioExiste = await Usuarios.findOne({ where: { email } });
+      if (usuarioExiste && usuarioExiste.usuario_id !== usuario_id) {
+        return res.status(400).json({ msg: "Este e-mail já está em uso por outro usuário." });
+      }
+  
+      const usuarioAtualizado = {
+        nome,
+        email,
+      };
+  
+      if (senha) {
+        const salt = await bcrypt.genSalt(12);
+        const senhaHash = await bcrypt.hash(senha, salt);
+        usuarioAtualizado.senha = senhaHash;
+      }
+  
+      const [linhasAfetadas] = await Usuarios.update(usuarioAtualizado, {
+        where: { usuario_id },
+      });
+  
+      if (linhasAfetadas === 0) {
+        return res.status(404).json({ msg: "Usuário não encontrado" });
+      }
+  
+      return res.status(200).json({ msg: "Usuário atualizado com sucesso!" });
+  
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ msg: "Erro ao atualizar o usuário." });
+    }
+  };
