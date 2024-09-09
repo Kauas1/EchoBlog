@@ -94,7 +94,7 @@ export const loginUser = async (req, res) => {
   };
 
 // Função para Atualizar Usuário.
-  export const updateUser = async (req, res) => {
+export const updateUser = async (req, res) => {
 
     const paramValidation = z.object({ usuario_id: z.string() }).safeParse(req.params);
     if (!paramValidation.success) {
@@ -147,3 +147,4 @@ export const loginUser = async (req, res) => {
       return res.status(500).json({ msg: "Erro ao atualizar o usuário." });
     }
   };
+
