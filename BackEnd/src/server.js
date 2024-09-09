@@ -11,6 +11,7 @@ import PostModels from "./Models/BlogModel.js"
 
 //Importação de Rotas
 import PostRouter from "./routes/BlogRouter.js"
+import UsuariosRouter from "./routes/UsuariosRouter.js"
 
 //Porta do Servidor
 const PORT = process.env.PORT || 3333
@@ -35,7 +36,7 @@ conn.sync().then(() =>{
 
 //Utilizando Rotas
 app.use("/postagens", PostRouter)
-
+app.use("/usuarios", UsuariosRouter)
 
 // Rota (404) Padrão
 app.use("/", (req,res) => {
