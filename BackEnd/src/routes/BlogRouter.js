@@ -1,18 +1,18 @@
-//Roteador:
-import { Router } from "express"
+import { Router } from "express";
+import bodyParser from "body-parser"
 
-// Métodos auxiliares (middleware)
-import checkNewPost from "../middleware/checkNewPost.js"
-import checkPostUpdate from "../middleware/checkNewPost.js"
-//Métodos dos controllers:
-import { CreateNewPost, GetPostByPage, getTasksByID, updatePost } from "../Controllers/BlogController.js";
+// //Métodos dos controllers:
+import { create, deletePostagem, getAll, getTasksByID, updatePost, uploadImagePostagem } from "../controllers/BlogController.js";
 
-// Declarand o Router:
-const router = Router()
+// // Declarand o Router:
+const router = Router();
 
-//Endpoints:
-router.post("/", CreateNewPost, checkNewPost)
-router.get("/", GetPostByPage)
-router.get("/:id", getTasksByID)
-router.put("/:id", checkPostUpdate, updatePost)
+// //Endpoints:
+router.post("/", create);
+router.get("/", getAll);
+router.get("/:id", getTasksByID);
+router.put("/:id", updatePost);
+router.delete("/:id", deletePostagem);
+router.post("/:id/imagem", bodyParser.raw({type: ["image/jpeg", "image/png", "image/jpg"], limit: "5mb"}), uploadImagePostagem)
+
 export default router;
