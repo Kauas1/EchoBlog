@@ -27,7 +27,8 @@ const Usuarios = conn.define(
     },
     papel: {
       type: DataTypes.ENUM,
-      values: ["administrador", "autor", "leitor"]
+      values: ["administrador", "autor", "leitor"],
+      defaultValue: ["leitor"]
     },
   },
   {

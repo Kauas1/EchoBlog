@@ -28,8 +28,7 @@ app.use(express.json())
 conn.sync().then(() =>{
     app.listen(PORT, ()=>{
         console.clear()
-        console.log(`| Bem-vindo à EchoBlog! 📋 |`)
-    console.log(`| Servidor na porta: ${PORT} 🚀 |`)
+    console.log(`| Servidor na porta: ${PORT} 🤡 |`)
     console.log(`| Banco de dados conectado.  |\n`)
     })
 }).catch((error) => console.error(error))
