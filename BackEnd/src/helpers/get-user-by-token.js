@@ -13,13 +13,6 @@ const getUserByToken = async (token) => {
         const userId = decoded.id
         // console.log("Função userId: ", userId)
         
-
-        try {
-            
-        } catch (error) {
-            
-        }
-
         const checkSql = /*sql*/`
         SELECT * 
         FROM usuarios 

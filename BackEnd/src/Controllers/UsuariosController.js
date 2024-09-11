@@ -16,12 +16,13 @@ const updateUserSchema = z.object({
     image: z.optional(z.string())
   });
 
-
+const getSchema = z.string().uuid({message: "UUID invalido!"});
 
 //Importando os Helpers:
 import formatZodError from "../helpers/zodError.js";
 import createUserToken from "../helpers/create-user-token.js";
 import getToken from "../helpers/get-token.js";
+import getUserByToken from "../helpers/get-user-by-token.js";
 
 // Adicionando os Usuarios:
 export const createUser = async (req, res) => {
@@ -103,15 +104,15 @@ export const updateUser = async (req, res) => {
   if(!idValidation.success){
       return res.status(400).json({message: "Os dados recebidos no corpo da aplicação são invalidos", detalhes: formatZodError(idValidation.error)})
   }
-  const id = idValidation.data;
 
-  const bodyValidation = updateUser.safeParse(req.body);
+  const bodyValidation = updateUserSchema.safeParse(req.body);
 
   if(!bodyValidation.success){
       return res.status(400).json({message: "Os dados recebidos no corpo da aplicação são invalidos", detalhes: formatZodError(bodyValidation.error)})
   }
 
   const {nome, email, senha, papel} = bodyValidation.data;
+
   const salt = await bcrypt.genSalt(12);
   const senhaHash = await bcrypt.hash(senha, salt);
 
@@ -120,16 +121,16 @@ export const updateUser = async (req, res) => {
   try{
       const token = getToken(req);
       const user = await getUserByToken(token);
-      const user_id = user.dataValues.user_id
+      const usuario_id = user.dataValues.usuario_id
 
       const emailCheck = await Usuarios.findOne({where: {email}});
       if(emailCheck){
-          if(emailCheck.user_id !== user_id){
+          if(emailCheck.usuario_id !== usuario_id){
               return res.status(403).json({message: "Já existe um usuario com este email!"});
           }
       }
 
-      await Usuarios.update(userData, {where: {user_id}});
+      await Usuarios.update(userData, {where: {usuario_id}});
 
       res.status(200).json({message: "Usuario atualizado com sucesso!"})
   }catch(err){
@@ -137,5 +138,4 @@ export const updateUser = async (req, res) => {
       res.status(500).json({message: "Erro ao atualizar os dados do usuario!"})
   }
 };
-
 
