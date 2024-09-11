@@ -10,7 +10,10 @@ const createSchema = z.object({nome: z.string().min(3, { msg: "O Nome deve ter p
 const loginSchema = z.object({email: z.string().email(), senha: z.string().min(8, {msg: "A senha deve ter pelo menos 8 caracteres"}) })
 
 const updateUserSchema = z.object({
-    nome: z.string().min(3, { msg: "O nome do usuário deve ter pelo menos 3 caracteres" }).transform((txt) => txt.toLowerCase()), email: z.string().email(), senha: z.string().min(8, { msg: "A senha deve ter pelo menos 8 caracteres" }), 
+    nome: z.string().min(3, { msg: "O nome do usuário deve ter pelo menos 3 caracteres" }).transform((txt) => txt.toLowerCase()), 
+    email: z.string().email(), 
+    senha: z.string().min(8, { msg: "A senha deve ter pelo menos 8 caracteres" }), 
+    image: z.optional(z.string())
   });
 
 
@@ -18,6 +21,7 @@ const updateUserSchema = z.object({
 //Importando os Helpers:
 import formatZodError from "../helpers/zodError.js";
 import createUserToken from "../helpers/create-user-token.js";
+import getToken from "../helpers/get-token.js";
 
 // Adicionando os Usuarios:
 export const createUser = async (req, res) => {
@@ -95,55 +99,43 @@ export const loginUser = async (req, res) => {
 // Função para Atualizar Usuário.
 export const updateUser = async (req, res) => {
 
-    const paramValidation = z.object({ usuario_id: z.string() }).safeParse(req.params);
-    if (!paramValidation.success) {
-      return res.status(400).json({
-        msg: "O número de identificação está inválido",
-        detalhes: formatZodError(paramValidation.error)
-      });
-    }
-  
-    const { usuario_id } = req.params;
-    const updateValidation = updateUserSchema.safeParse(req.body);
-    if (!updateValidation.success) {
-      return res.status(400).json({
-        msg: "Os dados do corpo são inválidos",
-        detalhes: updateValidation.error,
-      });
-    }
-  
-    const { nome, email, senha } = req.body;
-  
-    try {
-      const usuarioExiste = await Usuarios.findOne({ where: { email } });
-      if (usuarioExiste && usuarioExiste.usuario_id !== usuario_id) {
-        return res.status(400).json({ msg: "Este e-mail já está em uso por outro usuário." });
+  const idValidation = getSchema.safeParse(req.params.id)
+  if(!idValidation.success){
+      return res.status(400).json({message: "Os dados recebidos no corpo da aplicação são invalidos", detalhes: formatZodError(idValidation.error)})
+  }
+  const id = idValidation.data;
+
+  const bodyValidation = updateUser.safeParse(req.body);
+
+  if(!bodyValidation.success){
+      return res.status(400).json({message: "Os dados recebidos no corpo da aplicação são invalidos", detalhes: formatZodError(bodyValidation.error)})
+  }
+
+  const {nome, email, senha, papel} = bodyValidation.data;
+  const salt = await bcrypt.genSalt(12);
+  const senhaHash = await bcrypt.hash(senha, salt);
+
+  const userData = {nome, email, senha: senhaHash};
+
+  try{
+      const token = getToken(req);
+      const user = await getUserByToken(token);
+      const user_id = user.dataValues.user_id
+
+      const emailCheck = await Usuarios.findOne({where: {email}});
+      if(emailCheck){
+          if(emailCheck.user_id !== user_id){
+              return res.status(403).json({message: "Já existe um usuario com este email!"});
+          }
       }
-  
-      const usuarioAtualizado = {
-        nome,
-        email,
-      };
-  
-      if (senha) {
-        const salt = await bcrypt.genSalt(12);
-        const senhaHash = await bcrypt.hash(senha, salt);
-        usuarioAtualizado.senha = senhaHash;
-      }
-  
-      const [linhasAfetadas] = await Usuarios.update(usuarioAtualizado, {
-        where: { usuario_id },
-      });
-  
-      if (linhasAfetadas === 0) {
-        return res.status(404).json({ msg: "Usuário não encontrado" });
-      }
-  
-      return res.status(200).json({ msg: "Usuário atualizado com sucesso!" });
-  
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ msg: "Erro ao atualizar o usuário." });
-    }
-  };
+
+      await Usuarios.update(userData, {where: {user_id}});
+
+      res.status(200).json({message: "Usuario atualizado com sucesso!"})
+  }catch(err){
+      console.error(err);
+      res.status(500).json({message: "Erro ao atualizar os dados do usuario!"})
+  }
+};
+
 
