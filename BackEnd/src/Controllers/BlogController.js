@@ -30,21 +30,14 @@ export const create = async (req, res) => {
       return;
     }
   
-    const { titulo, conteudo, autor, imagem } = req.body;
-  
-    if (!titulo) {
-      res.status(400).json({ err: "O titulo é obirgatoria" });
-      return;
+    const { titulo, conteudo, autor } = req.body;
+    let imagem
+    if(req.file) {
+      imagem = req.file.filename
+    }else{
+      imagem = "postagemDefault.png"
     }
-    if (!conteudo) {
-      res.status(400).json({ err: "O conteudo é obirgatoria" });
-      return;
-    }
-    if (!autor) {
-      res.status(400).json({ err: "O autor é obirgatoria" });
-      return;
-    }
-  
+
     const novaPostagem = {
       titulo,
       conteudo,
@@ -53,8 +46,8 @@ export const create = async (req, res) => {
     };
   
     try {
-      await Postagem.create(novaPostagem);
-      res.status(201).json({ msg: "Postagem Cadastrada" });
+      const postagem = await Postagem.create(novaPostagem);
+      res.status(201).json({ postagem });
     } catch (error) {
       console.error(error);
       res.status(500).json({ err: "Erro ao cadastrar postagem" });
@@ -83,7 +76,7 @@ export const getAll = async (req, res) =>{
             postagens: postagem.rows
         })
     } catch (error) {
-        res.status(500).json({err: "Erro interno no servidor."})
+        res.status(500).json({err: "Erro interno no servidor." + error})
     }
 }
 

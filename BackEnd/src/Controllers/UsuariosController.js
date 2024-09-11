@@ -1,8 +1,7 @@
 import Usuarios from "../Models/UsuariosModel.js"
 import { z } from "zod"
 import bcrypt from "bcrypt"
-
-
+import { Op } from "sequelize" 
 
 // Validações com ZOD
 const createSchema = z.object({nome: z.string().min(3, { msg: "O Nome deve ter pelo menos 3 caracteres" }).transform((txt) => txt.toLowerCase()), email: z.string().email(), senha: z.string().min(8, { msg: "A senha deve ter pelo menos 8 caracteres" }), papel: z.enum([ "administrador", "autor", "leitor" ]).transform((txt) => txt.toLocaleLowerCase()).optional(),

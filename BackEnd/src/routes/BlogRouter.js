@@ -4,11 +4,14 @@ import bodyParser from "body-parser"
 // //Métodos dos controllers:
 import { create, deletePostagem, getAll, getTasksByID, updatePost, uploadImagePostagem } from "../controllers/BlogController.js";
 
-// // Declarand o Router:
+
+import imageUpload from "../helpers/image-upload.js";
+
+// Declarand o Router:
 const router = Router();
 
 // //Endpoints:
-router.post("/", create);
+router.post("/", imageUpload.single("imagem"), create);
 router.get("/", getAll);
 router.get("/:id", getTasksByID);
 router.put("/:id", updatePost);

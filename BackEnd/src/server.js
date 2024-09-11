@@ -2,6 +2,8 @@
 import "dotenv/config"
 import express from "express"
 import cors from "cors"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
 
 // Importando conexão via Sequelize
 import conn from "./config/conn.js"
@@ -19,15 +21,22 @@ const PORT = process.env.PORT || 3333
 //Inicializando o Express
 const app = express()
 
+// Const para pegar as imagens logo abaixo o middleware sobre...
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 // Middlewares Principais
 app.use(cors())
 app.use(express.urlencoded({extended: true}))
 app.use(express.json())
 
+//middleware necessário para imagens
+app.use("/public", express.static(path.join(__dirname, "public")))
+
 //Conectando com o banco de dados
 conn.sync().then(() =>{
     app.listen(PORT, ()=>{
-        console.clear()
+    console.clear()
     console.log(`| Servidor na porta: ${PORT} 🤡 |`)
     console.log(`| Banco de dados conectado.  |\n`)
     })
