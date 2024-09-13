@@ -20,6 +20,7 @@ const updatePostagemSchema = z.object({
 
 // Adicionando as Postagens:
 export const create = async (req, res) => {
+
     const bodyValidation = createSchema.safeParse(req.body);
   
     if (!bodyValidation.success) {
@@ -81,8 +82,7 @@ export const getAll = async (req, res) =>{
 }
 
 // Buscar Postagem por ID
-export const getTasksByID = async (req, res) => { //3
-
+export const getTasksByID = async (req, res) => { 
 
     const PostagemId = req.params.id
     
@@ -110,7 +110,7 @@ export const getTasksByID = async (req, res) => { //3
       res.status(400).json({msg: "Numero de identificação está inválido",detalhes: formatZodError(paramValidation.error),});
         return
     }
-  
+
     const { id } = req.params;
     const { titulo, conteudo, imagem } = req.body;
   

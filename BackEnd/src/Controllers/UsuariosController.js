@@ -13,8 +13,7 @@ const updateUserSchema = z.object({
     nome: z.string().min(3, { msg: "O nome do usuário deve ter pelo menos 3 caracteres" }).transform((txt) => txt.toLowerCase()), 
     email: z.string().email(), 
     senha: z.string().min(8, { msg: "A senha deve ter pelo menos 8 caracteres" }), 
-    image: z.optional(z.string())
-  });
+    });
 
 const getSchema = z.string().uuid({message: "UUID invalido!"});
 
@@ -139,3 +138,67 @@ export const updateUser = async (req, res) => {
   }
 };
 
+export const getUsuarios = async (req, res) => {
+  try{
+      const users = await Usuarios.findAll();
+
+      res.status(200).json(users)
+  }catch(err){
+      console.error(err);
+      res.status(500).json({message: "Erro ao buscar os usuarios!"})
+  }
+}
+
+export const deleteUser = async (req, res) => {
+
+  const idValidation = getSchema.safeParse(req.params.id)
+  if(!idValidation.success){
+      return res.status(400).json({message: "Os dados recebidos no corpo da aplicação são invalidos", 
+      detalhes: formatZodError(idValidation.error)})
+  }
+  const user_id = idValidation.data;
+
+  try {
+      const user = await Users.findByPk(user_id);
+
+      if(!user){
+          return res.status(404).json({message: "Este usuario não foi encontrado!"});
+      }
+      
+      await Users.destroy({where: {user_id}});
+      res.status(204).end();
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({message: "Erro ao deletar usuario!"})
+  }
+}
+
+export const trocarPapel = async (req, res) => {
+
+  const idValidation = getSchema.safeParse(req.params.id)
+  if(!idValidation.success){
+      return res.status(400).json({message: "Os dados recebidos no corpo da aplicação são invalidos", 
+      detalhes: formatZodError(idValidation.error)})
+  }
+  const user_id = idValidation.data;
+  try {
+      const usuario = await Users.findByPk(user_id);
+      if(!usuario){
+          return res.status(404).json({message: "Não foi encontrado o usuario pelo ID fornecido!"});
+      }
+
+      if(usuario.dataValues.papel == "leitor"){
+          await Users.update({papel: 'autor'}, {where: {user_id}});
+      } else if (usuario.dataValues.papel == "autor") {
+          await Users.update({papel: 'leitor'}, {where: {user_id}});
+      }
+      const updatedUser = await Users.findOne({raw: true,where: {user_id}});
+      res.status(200).json({usuario: updatedUser});
+
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({message: "Erro ao mudar o papel do usuario"})
+  }
+}
+
+export default changePaper;
