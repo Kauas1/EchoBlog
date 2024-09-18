@@ -10,10 +10,13 @@ import conn from "./config/conn.js"
 
 // Importação de Modelos
 import PostModels from "./Models/BlogModel.js"
+import UsuariosModel from "./Models/UsuariosModel.js"
+import ComentarioModel from "./Models/comentarioModel.js"
 
 //Importação de Rotas
 import PostRouter from "./routes/BlogRouter.js"
 import UsuariosRouter from "./routes/UsuariosRouter.js"
+import ComentarioRouter from "./routes/comentarioRouter.js"
 
 //Porta do Servidor
 const PORT = process.env.PORT || 3333
@@ -45,6 +48,7 @@ conn.sync().then(() =>{
 //Utilizando Rotas
 app.use("/postagens", PostRouter)
 app.use("/usuarios", UsuariosRouter)
+app.use("/comentarios", ComentarioRouter)
 
 // Rota (404) Padrão
 app.use("/", (req,res) => {

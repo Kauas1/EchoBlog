@@ -159,13 +159,13 @@ export const deleteUser = async (req, res) => {
   const user_id = idValidation.data;
 
   try {
-      const user = await Users.findByPk(user_id);
+      const user = await Usuarios.findByPk(user_id);
 
       if(!user){
           return res.status(404).json({message: "Este usuario não foi encontrado!"});
       }
       
-      await Users.destroy({where: {user_id}});
+      await Usuarios.destroy({where: {user_id}});
       res.status(204).end();
   } catch (error) {
       console.error(error);
@@ -182,17 +182,17 @@ export const trocarPapel = async (req, res) => {
   }
   const user_id = idValidation.data;
   try {
-      const usuario = await Users.findByPk(user_id);
+      const usuario = await Usuarios.findByPk(user_id);
       if(!usuario){
           return res.status(404).json({message: "Não foi encontrado o usuario pelo ID fornecido!"});
       }
 
       if(usuario.dataValues.papel == "leitor"){
-          await Users.update({papel: 'autor'}, {where: {user_id}});
+          await Usuarios.update({papel: 'autor'}, {where: {user_id}});
       } else if (usuario.dataValues.papel == "autor") {
-          await Users.update({papel: 'leitor'}, {where: {user_id}});
+          await Usuarios.update({papel: 'leitor'}, {where: {user_id}});
       }
-      const updatedUser = await Users.findOne({raw: true,where: {user_id}});
+      const updatedUser = await Usuarios.findOne({raw: true,where: {user_id}});
       res.status(200).json({usuario: updatedUser});
 
   } catch (error) {
@@ -200,5 +200,3 @@ export const trocarPapel = async (req, res) => {
       res.status(500).json({message: "Erro ao mudar o papel do usuario"})
   }
 }
-
-export default changePaper;

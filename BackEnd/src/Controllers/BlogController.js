@@ -1,9 +1,15 @@
 import Postagem from "../Models/BlogModel.js"
+import Comentario from "../Models/comentarioModel.js";
 import { z } from "zod"
 import fs from "fs";
 
 // Validações com ZOD
 const createSchema = z.object({titulo: z.string().min(3, { msg: "O titulo deve ter pelo menos 3 caracteres" }).transform((txt) => txt.toLowerCase()), conteudo: z.string().min(5, { msg: "O conteudo deve ter pelo menos 5 caracteres" }), autor: z.string().min(3, { msg: "O autor deve ter pelo menos 3 caracteres" }), imagem: z.string().optional(),
+});
+
+const comentarioSchema = z.object({
+  conteudo: z.string().min(1, { msg: "O conteúdo do comentário é obrigatório" }),
+  postagemId: z.string().uuid({ message: "O ID da postagem é inválido" }),
 });
 
 const updatePostagemSchema = z.object({
@@ -182,3 +188,132 @@ export const uploadImagePostagem = async (request, response) => {
       response.status(500).json({ msg: "Erro ao atualizar Imagem" });
     }
   };
+
+// Criar comentário
+export const criarComentario = async (req, res) => {
+  const token = getToken(req);
+  const usuario = await getUserByToken(token);
+
+  if (!usuario) {
+    return res.status(401).json({ message: "Usuário não autenticado." });
+  }
+
+  const bodyValidation = comentarioSchema.safeParse(req.body);
+
+  if (!bodyValidation.success) {
+    return res.status(400).json({
+      msg: "Os dados recebidos são inválidos.",
+      detalhes: formatZodError(bodyValidation.error),
+    });
+  }
+
+  const { conteudo, postagemId } = bodyValidation.data;
+  const usuarioId = usuario.dataValues.usuario_id;
+
+  try {
+    const postagem = await Postagem.findByPk(postagemId);
+    if (!postagem) {
+      return res.status(404).json({ message: "Postagem não encontrada." });
+    }
+
+    const comentario = await Comentario.create({
+      conteudo,
+      usuarioId,
+      postagemId,
+    });
+
+    res.status(201).json({ message: "Comentário criado com sucesso.", comentario });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Erro ao criar comentário." });
+  }
+};
+
+// Editar comentário
+export const editarComentario = async (req, res) => {
+  const token = getToken(req);
+  const usuario = await getUserByToken(token);
+
+  if (!usuario) {
+    return res.status(401).json({ message: "Usuário não autenticado." });
+  }
+
+  const comentarioId = req.params.id;
+  const { conteudo } = req.body;
+
+  try {
+    const comentario = await Comentario.findByPk(comentarioId);
+
+    if (!comentario) {
+      return res.status(404).json({ message: "Comentário não encontrado." });
+    }
+
+    if (comentario.usuarioId !== usuario.dataValues.usuario_id && usuario.dataValues.papel !== 'administrador') {
+      return res.status(403).json({ message: "Apenas o autor ou um administrador pode editar este comentário." });
+    }
+
+    comentario.conteudo = conteudo;
+    await comentario.save();
+
+    res.status(200).json({ message: "Comentário editado com sucesso.", comentario });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Erro ao editar comentário." });
+  }
+};
+
+// Excluir comentário
+export const excluirComentario = async (req, res) => {
+  const token = getToken(req);
+  const usuario = await getUserByToken(token);
+
+  if (!usuario) {
+    return res.status(401).json({ message: "Usuário não autenticado." });
+  }
+
+  const comentarioId = req.params.id;
+
+  try {
+    const comentario = await Comentario.findByPk(comentarioId);
+
+    if (!comentario) {
+      return res.status(404).json({ message: "Comentário não encontrado." });
+    }
+
+    if (comentario.usuarioId !== usuario.dataValues.usuario_id && usuario.dataValues.papel !== 'administrador') {
+      return res.status(403).json({ message: "Apenas o autor ou um administrador pode excluir este comentário." });
+    }
+
+    await comentario.destroy();
+    res.status(200).json({ message: "Comentário excluído com sucesso." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Erro ao excluir comentário." });
+  }
+};
+
+// Listar comentários de uma postagem
+export const listarComentariosPorPostagem = async (req, res) => {
+  const { postagemId } = req.params;
+
+  try {
+    const postagem = await Postagem.findByPk(postagemId);
+    if (!postagem) {
+      return res.status(404).json({ message: "Postagem não encontrada." });
+    }
+    const comentarios = await Comentario.findAll({
+      where: { postagemId },
+      include: [
+        {
+          model: Usuarios,
+          attributes: ['id', 'nome'], 
+        },
+      ],
+      order: [['createdAt', 'DESC']], 
+    });
+    res.status(200).json({ comentarios });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Erro ao listar comentários." });
+  }
+};

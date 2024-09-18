@@ -1,10 +1,11 @@
 import conn from "../config/conn.js";
 import { DataTypes } from "sequelize";
+import Usuarios from "./UsuariosModel.js";
 
 const Postagem = conn.define(
   "postagens",
   {
-    id: {
+    postagem_id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
@@ -32,5 +33,8 @@ const Postagem = conn.define(
     tableName: "postagens",
   }
 );
+
+
+
 
 export default Postagem;
