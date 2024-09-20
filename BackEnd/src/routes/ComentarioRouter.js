@@ -1,6 +1,7 @@
 import { Router } from "express";
 
-import {criarComentario, listarComentariosPorPostagem, editarComentario, excluirComentario } from '../controllers/BlogController.js';
+import { criarComentario, listarComentariosPorPostagem, editarComentario, excluirComentario } from "../Controllers/BlogController.js";
+
   
 // Middleware de autenticação
 import verifyRole from "../helpers/verify-papel.js";

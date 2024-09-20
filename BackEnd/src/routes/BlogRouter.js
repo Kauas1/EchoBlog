@@ -2,7 +2,7 @@ import { Router } from "express";
 import bodyParser from "body-parser"
 
 // //Métodos dos controllers:
-import { create, deletePostagem, getAll, getTasksByID, updatePost, uploadImagePostagem } from "../controllers/BlogController.js";
+import { create, deletePostagem, getAll, getTasksByID, updatePost, uploadImagePostagem } from "../Controllers/BlogController.js";
 
 
 import imageUpload from "../helpers/image-upload.js";
@@ -17,5 +17,5 @@ router.get("/:id", getTasksByID);
 router.put("/:id", updatePost);
 router.delete("/:id", deletePostagem);
 router.post("/:id/imagem", bodyParser.raw({type: ["image/jpeg", "image/png", "image/jpg"], limit: "5mb"}), uploadImagePostagem)
-
+router.post("/:id/curtidas", toggleCurtida);
 export default router;

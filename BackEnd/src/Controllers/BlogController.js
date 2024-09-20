@@ -2,6 +2,7 @@ import Postagem from "../Models/BlogModel.js"
 import Comentario from "../Models/comentarioModel.js";
 import { z } from "zod"
 import fs from "fs";
+import Curtidas from "../Models/CurtidasModel.js";
 
 // Validações com ZOD
 const createSchema = z.object({titulo: z.string().min(3, { msg: "O titulo deve ter pelo menos 3 caracteres" }).transform((txt) => txt.toLowerCase()), conteudo: z.string().min(5, { msg: "O conteudo deve ter pelo menos 5 caracteres" }), autor: z.string().min(3, { msg: "O autor deve ter pelo menos 3 caracteres" }), imagem: z.string().optional(),
@@ -317,3 +318,30 @@ export const listarComentariosPorPostagem = async (req, res) => {
     res.status(500).json({ message: "Erro ao listar comentários." });
   }
 };
+
+// Adicionar curtidas e remover
+export const curtirPostagem =  async (req,res) => {
+
+  try{
+    const {postagemId} = req.params
+    const {usuarioId} = req.body
+
+    const curtidasExiste = await Curtidas.findOne({
+      where:{
+        usuario_id: postagemId,
+        postagem_id: usuarioId
+      }
+    });
+
+    if(curtidasExiste){
+      await curtidasExiste.destroy()
+      res.status(200).json({message: "Deslike feito com sucesso."})
+    }else{
+      usuario_id: usuarioId
+      postagem_id: postagemId
+    }
+    return res.status(201).json({message: "Curtida adicionada"})
+  }catch(error){
+    return res.status(500).json({message: "Erro ao processar dados."})
+  }
+}
